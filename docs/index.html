@@ -15,13 +15,6 @@
     body {
       font-family: 'Inter', sans-serif;
     }
-    @keyframes pulse-slow {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.85; transform: scale(1.02); }
-    }
-    .animate-pulse-slow {
-      animation: pulse-slow 3s infinite ease-in-out;
-    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
@@ -49,7 +42,7 @@
       <div class="flex items-center space-x-3">
         <div class="hidden sm:flex items-center space-x-1.5 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-xs text-slate-400">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span id="api-status-badge">API: Connected</span>
+          <span>API: Connected</span>
         </div>
         <a href="https://github.com/Skanda-P-R/URL-Shortner" target="_blank" class="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white transition-colors" title="View Source on GitHub">
           <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -66,13 +59,13 @@
     <!-- Hero Title -->
     <div class="text-center mb-10">
       <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-medium mb-4">
-        <span>⚡ High-Speed Base62 & Redis Caching</span>
+        <span>⚡ High-Speed Base62, Redis & QR Generation</span>
       </div>
       <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-white mb-4">
-        Shorten Links with <span class="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Zero Friction</span>
+        Shorten Links & <span class="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Generate QR Codes</span>
       </h1>
       <p class="text-slate-400 text-base sm:text-lg max-w-xl mx-auto">
-        Non-sequential IDs, built-in URL deduplication, and sub-millisecond Redis caching. Paste any long link below.
+        Non-sequential IDs, built-in URL deduplication, sub-millisecond Redis caching, and automated QR code storage in PostgreSQL.
       </p>
     </div>
 
@@ -111,7 +104,6 @@
           <svg id="btn-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
           </svg>
-          <!-- Loading Spinner (Hidden by default) -->
           <svg id="loading-spinner" class="w-5 h-5 animate-spin hidden text-white" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
@@ -119,7 +111,7 @@
         </button>
       </form>
 
-      <!-- Cold Start Notification (Visible only if request takes > 2.5s) -->
+      <!-- Cold Start Notification -->
       <div id="cold-start-banner" class="hidden mt-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs flex items-center space-x-2">
         <svg class="w-4 h-4 shrink-0 animate-spin" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -168,37 +160,77 @@
         </div>
 
         <!-- Action Buttons -->
-        <div class="flex items-center space-x-2 w-full sm:w-auto shrink-0">
+        <div class="flex items-center space-x-2 w-full sm:w-auto shrink-0 flex-wrap sm:flex-nowrap">
           <!-- Copy Button -->
           <button
             id="copy-btn"
             type="button"
-            class="flex-1 sm:flex-none px-4 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-all flex items-center justify-center space-x-1.5 shadow-md shadow-indigo-600/20 active:scale-95"
+            class="flex-1 sm:flex-none px-3.5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-all flex items-center justify-center space-x-1.5 shadow-md shadow-indigo-600/20 active:scale-95"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
             </svg>
-            <span id="copy-btn-text">Copy Link</span>
+            <span id="copy-btn-text">Copy</span>
           </button>
 
-          <!-- Open in New Page Button (Specifically Requested) -->
+          <!-- Open in New Page Button -->
           <a
             id="open-page-btn"
             href="#"
             target="_blank"
-            class="flex-1 sm:flex-none px-4 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-semibold transition-all flex items-center justify-center space-x-1.5 active:scale-95"
+            class="flex-1 sm:flex-none px-3.5 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-semibold transition-all flex items-center justify-center space-x-1.5 active:scale-95"
             title="Open short link in new browser tab"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
             </svg>
-            <span>Open Link</span>
+            <span>Open</span>
           </a>
+
+          <!-- QR Code Toggle Button -->
+          <button
+            id="toggle-qr-btn"
+            type="button"
+            class="flex-1 sm:flex-none px-3.5 py-2.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold transition-all flex items-center justify-center space-x-1.5 shadow-md shadow-purple-600/20 active:scale-95"
+            title="View or download QR code"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+            </svg>
+            <span>QR Code</span>
+          </button>
         </div>
       </div>
 
+      <!-- QR Code Preview Panel (Collapsible) -->
+      <div id="qr-panel" class="hidden mt-4 p-4 rounded-xl bg-slate-950 border border-purple-500/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center space-x-4">
+          <div class="p-2 bg-white rounded-xl shadow-lg shrink-0">
+            <img id="qr-image" src="" alt="QR Code" class="w-28 h-28 object-contain">
+          </div>
+          <div>
+            <div class="text-sm font-semibold text-white mb-1">QR Code Generated</div>
+            <div class="text-xs text-slate-400 mb-2">Scans directly to your short link. Stored in PostgreSQL & Redis.</div>
+            <div id="qr-cache-badge" class="inline-block px-2 py-0.5 rounded text-[10px] font-mono bg-purple-500/10 text-purple-300 border border-purple-500/20">
+              Redis Cached
+            </div>
+          </div>
+        </div>
+        <a
+          id="qr-download-link"
+          href="#"
+          download="qrcode.png"
+          class="px-4 py-2.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center space-x-1.5 shadow-md shadow-purple-600/20 transition-all shrink-0 active:scale-95"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+          </svg>
+          <span>Download PNG</span>
+        </a>
+      </div>
+
       <!-- Target URL Details -->
-      <div class="text-xs text-slate-400 flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-slate-800/60">
+      <div class="text-xs text-slate-400 flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-3 border-t border-slate-800/60 mt-3">
         <div class="truncate max-w-md">
           <span class="text-slate-500">Destination:</span>
           <span id="result-orig-url" class="text-slate-300 font-mono ml-1"></span>
@@ -217,18 +249,22 @@
     </div>
 
     <!-- Feature Highlights -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-12 text-center sm:text-left">
+    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mt-12 text-center sm:text-left">
       <div class="p-4 rounded-xl bg-slate-900/40 border border-slate-800/60">
         <div class="text-indigo-400 mb-2">🔒 Non-Sequential</div>
-        <div class="text-xs text-slate-400">Cryptographically secure 63-bit IDs encoded in Base62. Impossible to sequentially guess.</div>
+        <div class="text-xs text-slate-400">Cryptographically secure 63-bit IDs in Base62. Impossible to guess.</div>
       </div>
       <div class="p-4 rounded-xl bg-slate-900/40 border border-slate-800/60">
         <div class="text-purple-400 mb-2">♻️ Deduplication</div>
-        <div class="text-xs text-slate-400">Submitting the same URL returns the existing code without duplicate database rows.</div>
+        <div class="text-xs text-slate-400">Submitting identical URLs returns the existing link without duplicate rows.</div>
       </div>
       <div class="p-4 rounded-xl bg-slate-900/40 border border-slate-800/60">
-        <div class="text-pink-400 mb-2">⚡ Redis Caching</div>
+        <div class="text-pink-400 mb-2">⚡ Redis Cache</div>
         <div class="text-xs text-slate-400">Cache-aside layer redirects in sub-milliseconds without touching PostgreSQL.</div>
+      </div>
+      <div class="p-4 rounded-xl bg-slate-900/40 border border-slate-800/60">
+        <div class="text-emerald-400 mb-2">📱 Instant QR</div>
+        <div class="text-xs text-slate-400">Automated QR generation cached in Redis and stored in PostgreSQL.</div>
       </div>
     </div>
 
@@ -237,7 +273,7 @@
   <!-- Footer -->
   <footer class="border-t border-slate-900 py-6 text-center text-xs text-slate-500">
     <div class="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-      <span>Built with FastAPI, PostgreSQL & Redis. Hosted on Render & GitHub Pages.</span>
+      <span>Built with FastAPI, PostgreSQL, Redis & QR Generation.</span>
       <div class="flex items-center space-x-2">
         <span>Backend:</span>
         <code class="px-2 py-0.5 rounded bg-slate-900 text-indigo-400 border border-slate-800 font-mono text-[11px]">https://danspark-url.onrender.com</code>
@@ -269,11 +305,18 @@
     const copyBtn = document.getElementById("copy-btn");
     const copyBtnText = document.getElementById("copy-btn-text");
     const openPageBtn = document.getElementById("open-page-btn");
+    const toggleQrBtn = document.getElementById("toggle-qr-btn");
+    const qrPanel = document.getElementById("qr-panel");
+    const qrImage = document.getElementById("qr-image");
+    const qrDownloadLink = document.getElementById("qr-download-link");
+    const qrCacheBadge = document.getElementById("qr-cache-badge");
     const historySection = document.getElementById("history-section");
     const historyList = document.getElementById("history-list");
     const clearHistoryBtn = document.getElementById("clear-history-btn");
 
-    // Local Storage Key
+    let currentShortCode = "";
+    let currentShortUrl = "";
+
     const STORAGE_KEY = "danspark_shortened_links";
 
     // Clipboard Paste Helper
@@ -295,11 +338,9 @@
       const rawUrl = longUrlInput.value.trim();
       if (!rawUrl) return;
 
-      // Reset states
       hideError();
       setLoading(true);
 
-      // Cold start banner timer (triggers if API takes > 2.5s)
       const coldStartTimer = setTimeout(() => {
         coldStartBanner.classList.remove("hidden");
       }, 2500);
@@ -307,9 +348,7 @@
       try {
         const response = await fetch(`${BASE_API_URL}/api/v1/shorten`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ url: rawUrl }),
         });
 
@@ -337,12 +376,18 @@
 
     // Display Result
     function displayResult(data) {
+      currentShortCode = data.short_code;
+      currentShortUrl = data.short_url;
+
       resultCard.classList.remove("hidden");
       resultShortUrl.textContent = data.short_url;
       resultShortUrl.href = data.short_url;
-      openPageBtn.href = data.short_url; // Open link button
+      openPageBtn.href = data.short_url;
       resultOrigUrl.textContent = data.original_url;
       resultCodeId.textContent = `Code: ${data.short_code}`;
+
+      // Reset QR panel to hidden until user clicks or loads
+      qrPanel.classList.add("hidden");
 
       if (data.is_new) {
         badgeDedup.textContent = "✨ Newly Created";
@@ -352,9 +397,44 @@
         badgeDedup.className = "px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20";
       }
 
-      // Smooth scroll to result
       resultCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
+
+    // Toggle QR Code Panel
+    toggleQrBtn.addEventListener("click", async () => {
+      if (!currentShortCode) return;
+
+      if (!qrPanel.classList.contains("hidden")) {
+        qrPanel.classList.add("hidden");
+        return;
+      }
+
+      // Fetch QR Code from API (POST /api/v1/qr)
+      try {
+        toggleQrBtn.innerText = "Loading QR...";
+        const res = await fetch(`${BASE_API_URL}/api/v1/qr`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ short_url: currentShortUrl }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Failed to generate QR code");
+
+        qrImage.src = `data:image/png;base64,${data.qr_code_base64}`;
+        qrDownloadLink.href = `${BASE_API_URL}/api/v1/urls/${currentShortCode}/qr?download=true`;
+        qrCacheBadge.textContent = data.is_cache_hit ? "⚡ Redis Cache Hit" : "💾 Stored in PostgreSQL";
+
+        qrPanel.classList.remove("hidden");
+      } catch (err) {
+        showError("Could not fetch QR code: " + err.message);
+      } finally {
+        toggleQrBtn.innerHTML = `
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
+          <span>QR Code</span>
+        `;
+      }
+    });
 
     // Copy to Clipboard Action
     copyBtn.addEventListener("click", async () => {
@@ -366,7 +446,7 @@
         copyBtn.classList.replace("hover:bg-indigo-500", "hover:bg-emerald-500");
 
         setTimeout(() => {
-          copyBtnText.textContent = "Copy Link";
+          copyBtnText.textContent = "Copy";
           copyBtn.classList.replace("bg-emerald-600", "bg-indigo-600");
           copyBtn.classList.replace("hover:bg-emerald-500", "hover:bg-indigo-500");
         }, 2000);
@@ -375,7 +455,6 @@
       }
     });
 
-    // Loading State
     function setLoading(isLoading) {
       if (isLoading) {
         submitBtn.disabled = true;
@@ -390,7 +469,6 @@
       }
     }
 
-    // Error State
     function showError(msg) {
       errorMessage.textContent = msg;
       errorBox.classList.remove("hidden");
@@ -411,7 +489,6 @@
 
     function saveToHistory(item) {
       let history = getHistory();
-      // Remove duplicate if exists
       history = history.filter(h => h.short_code !== item.short_code);
       history.unshift({
         short_code: item.short_code,
@@ -419,7 +496,6 @@
         original_url: item.original_url,
         created_at: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       });
-      // Keep last 10
       localStorage.setItem(STORAGE_KEY, JSON.stringify(history.slice(0, 10)));
     }
 
@@ -443,10 +519,8 @@
           </div>
           <div class="flex items-center space-x-2 shrink-0">
             <button onclick="navigator.clipboard.writeText('${item.short_url}'); this.innerText='✓'; setTimeout(()=>this.innerText='Copy', 1500)" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium">Copy</button>
-            <a href="${item.short_url}" target="_blank" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium flex items-center space-x-1">
-              <span>Open</span>
-              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-            </a>
+            <a href="${item.short_url}" target="_blank" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium">Open</a>
+            <a href="${BASE_API_URL}/api/v1/urls/${item.short_code}/qr?download=true" class="px-2.5 py-1 rounded bg-purple-900/40 hover:bg-purple-800 text-purple-300 font-medium">QR ⤓</a>
           </div>
         `;
         historyList.appendChild(div);
@@ -458,7 +532,6 @@
       renderHistory();
     });
 
-    // Initial load
     renderHistory();
   </script>
 </body>

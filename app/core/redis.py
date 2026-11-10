@@ -67,6 +67,11 @@ def make_cache_key(short_code: str) -> str:
     return f"url_shortener:code:{short_code}"
 
 
+def make_qr_cache_key(short_code: str) -> str:
+    """Standardized key prefix for QR code cache."""
+    return f"url_shortener:qr:{short_code}"
+
+
 async def get_cached_url(client: Optional[Redis], short_code: str) -> Optional[str]:
     """
     Attempts to read original URL from Redis. Returns None if miss or Redis offline.
@@ -96,4 +101,36 @@ async def set_cached_url(
         return True
     except Exception as e:
         logger.warning(f"Redis SET failed for code '{short_code}': {e}")
+        return False
+
+
+async def get_cached_qr(client: Optional[Redis], short_code: str) -> Optional[str]:
+    """
+    Attempts to read Base64 QR code from Redis. Returns None if miss or Redis offline.
+    """
+    if not client:
+        return None
+    try:
+        return await client.get(make_qr_cache_key(short_code))
+    except Exception as e:
+        logger.warning(f"Redis GET failed for QR code '{short_code}': {e}")
+        return None
+
+
+async def set_cached_qr(
+    client: Optional[Redis],
+    short_code: str,
+    qr_base64: str,
+    ttl_seconds: int = settings.CACHE_TTL_SECONDS,
+) -> bool:
+    """
+    Caches Base64 QR code in Redis with expiration TTL.
+    """
+    if not client:
+        return False
+    try:
+        await client.set(make_qr_cache_key(short_code), qr_base64, ex=ttl_seconds)
+        return True
+    except Exception as e:
+        logger.warning(f"Redis SET failed for QR code '{short_code}': {e}")
         return False

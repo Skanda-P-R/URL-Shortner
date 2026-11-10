@@ -245,6 +245,30 @@ Requires Docker Desktop installed.
   }
   ```
 
+### 4. Generate & Retrieve QR Code
+- **Endpoint:** `POST /api/v1/qr`
+- **Request:**
+  ```bash
+  curl -X POST "http://localhost:8000/api/v1/qr" \
+       -H "Content-Type: application/json" \
+       -d '{"short_url": "http://localhost:8000/k9Za3B"}'
+  ```
+- **Response (`200 OK`):**
+  ```json
+  {
+    "short_code": "k9Za3B",
+    "short_url": "http://localhost:8000/k9Za3B",
+    "qr_image_url": "http://localhost:8000/api/v1/urls/k9Za3B/qr",
+    "qr_code_base64": "iVBORw0KGgoAAAANSUhEUgAA...",
+    "is_cache_hit": false
+  }
+  ```
+- **Direct Image Download:**
+  ```bash
+  curl -O "http://localhost:8000/api/v1/urls/k9Za3B/qr?download=true"
+  ```
+  *(Returns raw `image/png` directly. Automatically deduplicated and stored in PostgreSQL, and cached in Redis).*
+
 ---
 
 ## Running Automated Tests

@@ -9,6 +9,7 @@ class URLItem(Base):
     - id: Unique, non-sequential 63-bit integer.
     - original_url: Unique long URL (enforces deduplication).
     - short_code: Base62-encoded representation of id, with unique index for rapid lookups.
+    - qr_code: Cached Base64-encoded PNG representation of the QR code.
     """
     __tablename__ = "urls"
 
@@ -37,6 +38,11 @@ class URLItem(Base):
         default=0,
         nullable=False,
         doc="Count of redirects through this short URL",
+    )
+    qr_code = Column(
+        Text,
+        nullable=True,
+        doc="Base64-encoded PNG QR code generated for the short URL",
     )
     created_at = Column(
         DateTime(timezone=True),

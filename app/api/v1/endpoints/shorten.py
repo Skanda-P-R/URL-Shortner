@@ -38,6 +38,7 @@ async def create_short_url(
         short_code=item.short_code,
         short_url=f"{settings.BASE_URL}/{item.short_code}",
         original_url=item.original_url,
+        qr_code_url=f"{settings.BASE_URL}/api/v1/urls/{item.short_code}/qr",
         created_at=item.created_at,
         is_new=is_new,
     )

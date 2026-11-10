@@ -36,6 +36,10 @@ class URLResponse(BaseModel):
     short_code: str
     short_url: str
     original_url: str
+    qr_code_url: Optional[str] = Field(
+        None,
+        description="Direct URL to fetch the QR code PNG image",
+    )
     created_at: datetime
     is_new: bool = Field(
         ...,
