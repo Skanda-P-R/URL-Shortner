@@ -23,6 +23,28 @@ Designed for high throughput, data integrity, and privacy by implementing **non-
 
 ---
 
+## Web Frontend (GitHub Pages)
+
+A modern, responsive web application is included in both [`docs/index.html`](file:///g:/Skanda%20Files/Github%20Repos/URL-Shortner/docs/index.html) and [`index.html`](file:///g:/Skanda%20Files/Github%20Repos/URL-Shortner/index.html).
+
+### Features:
+- **Instant Shortening:** Direct integration with `https://danspark-url.onrender.com`.
+- **Open in New Tab:** Direct button to open the shortened URL in a new browser tab.
+- **Click-to-Copy:** One-click copy with visual feedback.
+- **Deduplication Indicators:** Visual badges indicating whether a link was newly created or reused.
+- **Cold-Start Detection:** Informs users when Render's free tier backend is waking up.
+- **Local History:** Saves recent shortened links in browser `localStorage`.
+
+### How to Enable GitHub Pages:
+1. In your GitHub repository, go to **Settings** > **Pages**.
+2. Under **Build and deployment** > **Source**, choose **Deploy from a branch**.
+3. Select branch **`main`** and folder **`/docs`** (or `/ (root)`).
+4. Click **Save**.
+5. Your website will be live at:
+   `https://<your-github-username>.github.io/URL-Shortner/`
+
+---
+
 ## Architecture Diagram
 
 ```mermaid
