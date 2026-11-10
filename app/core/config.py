@@ -1,4 +1,5 @@
 from typing import List, Union
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 from pydantic import AnyHttpUrl, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -25,15 +26,40 @@ class Settings(BaseSettings):
     @classmethod
     def assemble_async_db_url(cls, v: str) -> str:
         """
-        Ensures the database URL uses the asyncpg driver when postgresql/postgres is supplied.
-        Handles provider formats (Render/Neon/Supabase often supply 'postgres://' or 'postgresql://').
+        Ensures the database URL uses the asyncpg driver and compatible query parameters.
+        Handles provider formats (Render/Neon/Supabase often supply 'postgres://' or 'postgresql://' with '?sslmode=require').
+        Converts 'sslmode' to 'ssl' because asyncpg expects 'ssl' and rejects 'sslmode'.
         """
         if not v:
             return v
         if v.startswith("postgres://"):
-            return v.replace("postgres://", "postgresql+asyncpg://", 1)
+            v = v.replace("postgres://", "postgresql+asyncpg://", 1)
         if v.startswith("postgresql://") and not v.startswith("postgresql+asyncpg://"):
-            return v.replace("postgresql://", "postgresql+asyncpg://", 1)
+            v = v.replace("postgresql://", "postgresql+asyncpg://", 1)
+
+        # Sanitize query parameters for asyncpg
+        parsed = urlparse(v)
+        if "asyncpg" in parsed.scheme:
+            query_params = parse_qs(parsed.query)
+            cleaned_params = {}
+            for key, values in query_params.items():
+                val = values[0] if values else ""
+                if key == "sslmode":
+                    # asyncpg takes 'ssl', not 'sslmode'
+                    cleaned_params["ssl"] = val
+                elif key in (
+                    "ssl",
+                    "timeout",
+                    "command_timeout",
+                    "statement_cache_size",
+                    "max_cached_statement_lifetime",
+                ):
+                    cleaned_params[key] = val
+                # Ignore unknown/unsupported params (e.g. channel_binding, endpoint)
+
+            new_query = urlencode(cleaned_params)
+            v = urlunparse(parsed._replace(query=new_query))
+
         return v
 
     @field_validator("BASE_URL", mode="after")
